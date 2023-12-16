@@ -3,7 +3,7 @@ from http import HTTPStatus
 
 # Импортируем функцию для определения модели пользователя.
 from django.contrib.auth import get_user_model
-from django.test import TestCase
+from django.test import Client, TestCase
 # Импортируем функцию reverse().
 from django.urls import reverse
 
@@ -13,43 +13,38 @@ from notes.models import Note
 # Получаем модель пользователя.
 User = get_user_model()
 
+LIST_URL = 'notes:list'
+EDIT_URL = 'notes:edit'
 
 # pytestmark = pytest.mark.skip(reason='ПРОВЕРЕНО')
 
 
-class TestRoutes(TestCase):
+class TestCommon(TestCase):
+    # Вынесем ссылку на домашнюю страницу в атрибуты класса.
+    LIST_URL = 'notes:list'
+    EDIT_URL = 'notes:edit'
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.author = User.objects.create(username='Автор')
+        cls.another_author = User.objects.create(username='Другой Автор')
+        cls.author_client = Client()
+        cls.author_client.force_login(cls.author)
+        cls.another_author_client = Client()
+        cls.another_author_client.force_login(cls.another_author)
+
+
+class TestRoutes(TestCommon):
     # Добавляем фикстуру с созданием заметки:
     @classmethod
     def setUpTestData(cls):
-        # Создаём двух пользователей с разными именами:
-        cls.author = User.objects.create(username='Автор')
-        cls.reader = User.objects.create(username='Читатель')
+        super().setUpTestData()
         cls.note = Note.objects.create(
-            title='Заголовок',
-            text='Текст',
+            title='Note for Author',
+            text='Text for Author',
             author=cls.author,
+            slug='note_for_author'
         )
-
-    def answer(self, status_code=None, name=None, user=None, status=None):
-        print()
-        print(
-            f'для {user}, {name} полученный ответ '
-            f'запроса: {status_code}, '
-            f'сравниваем с HTTPStatus который равен {status}'
-        )
-        print()
-
-    def test_get_author_name(self):
-        """Проверка имени автора заметки"""
-        # Retrieve the author name based on cls.note.author_id
-        author_name = User.objects.get(id=self.note.author_id).username
-        print(f'Author name based on author_id: {author_name}')
-        author_name_direct = self.note.author.username
-        print(
-            f'Author name directly from cls.note.author: {author_name_direct}')
-
-        # Perform your assertions or additional actions as needed
-        self.assertEqual(author_name, author_name_direct)
 
     def test_pages_availability(self):
         """Доступность отдельных страниц"""
@@ -72,15 +67,10 @@ class TestRoutes(TestCase):
         страница успешного добавления заметки done/,
         страница добавления новой заметки add/.
         """
-        user = self.author
-        self.client.force_login(user)
-
-        # Для каждой пары "пользователь - ожидаемый ответ"
-        # перебираем имена тестируемых страниц:
         for name in ('notes:list', 'notes:add', 'notes:success'):
-            with self.subTest(user=user, name=name):
+            with self.subTest(user=self.author_client, name=name):
                 url = reverse(name)
-                response = self.client.get(url)
+                response = self.author_client.get(url)
                 self.assertEqual(response.status_code, HTTPStatus.OK)
 
     def test_redirect_for_anonymous_client(self):
@@ -95,24 +85,16 @@ class TestRoutes(TestCase):
                     url = reverse(name, args=({'slug': self.note.slug}))
                 redirect_url = f'{login_url}?next={url}'
                 response = self.client.get(url)
-                print(f'{response.url} соответсвует {redirect_url}')
                 self.assertRedirects(response, redirect_url)
 
     def test_availability_for_note_edit_and_delete(self):
         """Проверка страниц редактирования и удаления заметки"""
-        users_status = (
-            # автор комментария должен получить ответ OK,
-            (self.author, HTTPStatus.OK),
-            # читатель должен получить ответ NOT_FOUND.
-            (self.reader, HTTPStatus.NOT_FOUND),
-        )
-        for user, status in users_status:
-            # Логиним пользователя в клиенте:
-            self.client.force_login(user)
-            # Для каждой пары "пользователь - ожидаемый ответ"
-            # перебираем имена тестируемых страниц:
+        for user, status in (
+            (self.author_client, HTTPStatus.OK),
+            (self.another_author_client, HTTPStatus.NOT_FOUND),
+        ):
             for name in ('notes:detail', 'notes:edit', 'notes:delete'):
-                with self.subTest(user=user, name=name):
-                    url = reverse(name, args={self.note.slug})
-                    response = self.client.get(url)
+                with self.subTest(name=name, user=user):
+                    url = reverse(name, args=(self.note.slug,))
+                    response = user.get(url)
                     self.assertEqual(response.status_code, status)
