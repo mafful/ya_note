@@ -1,16 +1,33 @@
+from datetime import timedelta
+
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.test import Client, TestCase
 from django.urls import reverse
+from django.utils import timezone
 
 from notes.models import Note
 
 User = get_user_model()
 
+NOTE_TEXT = 'Текст заметки'
+NEW_NOTE_TEXT = 'Обновлённый комментарий'
+SLUG = 'note_for_author'
 
-class MyBaseClass(TestCase):
+HOME_URL = reverse('notes:home')
+LIST_URL = reverse('notes:list')
+ADD_URL = reverse('notes:add')
+SUCCESS_URL = reverse('notes:success')
+LOGIN_URL = reverse('users:login')
+LOGOUT_URL = reverse('users:logout')
+SIGNUP_URL = reverse('users:signup')
 
-    NOTE_TEXT = 'Текст заметки'
-    NEW_NOTE_TEXT = 'Обновлённый комментарий'
+DETAIL_AUTHOR_NOTE_URL = reverse('notes:detail', args=(SLUG,))
+EDIT_AUTHOR_NOTE_URL = reverse('notes:edit', args=(SLUG,))
+DELETE_AUTHOR_NOTE_URL = reverse('notes:delete', args=(SLUG,))
+
+
+class BaseClass(TestCase):
 
     @classmethod
     def setUpTestData(cls):
@@ -22,38 +39,37 @@ class MyBaseClass(TestCase):
         cls.another_author_client = Client()
         cls.another_author_client.force_login(cls.another_author)
 
+        cls.spam_author = User.objects.create(username='Спам Автор')
+        cls.spam_author_client = Client()
+        cls.spam_author_client.force_login(cls.spam_author)
+
         cls.note_author = Note.objects.create(
             title='Note for Author',
             text='Text for Author',
             author=cls.author,
-
+            slug=SLUG
         )
-        cls.initial_number_author_notes = 1
 
+        today = timezone.now()
+        spam_notes = [
+            Note(
+                title=f'Сапм заметка {index}',
+                text='Спам текст.',
+                slug=f'Spam_zametka_{index}',
+                author=cls.spam_author,
+                created_at=today + timedelta(days=index, minutes=index + 1))
+            for index in range(0, settings.NOTES_COUNT_ON_HOME_PAGE)
+        ]
+        Note.objects.bulk_create(spam_notes)
         cls.note_another_author = Note.objects.create(
             title='Note for Another Author',
-            text=cls.NOTE_TEXT,
+            text=NOTE_TEXT,
             author=cls.another_author,
         )
-        cls.initial_number_another_author_notes = 1
-
-        cls.home_url = reverse('notes:home')
-        cls.list_url = reverse('notes:list')
-        cls.detail_author_note_url = reverse(
-            'notes:detail', args=(cls.note_author.slug,))
-        cls.add_url = reverse('notes:add')
-        cls.edit_author_note_url = reverse(
-            'notes:edit', args=(cls.note_author.slug,))
-        cls.delete_author_note_url = reverse(
-            'notes:delete', args=(cls.note_author.slug,))
-        cls.success_url = reverse('notes:success')
-        cls.login_url = reverse('users:login')
-        cls.logout_url = reverse('users:logout')
-        cls.signup_url = reverse('users:signup')
 
         # Формируем данные для POST-запроса по обновлению комментария.
         cls.form_data = {
             'title': 'Заголовок_форма',
-            'text': cls.NOTE_TEXT,
+            'text': NOTE_TEXT,
             'slug': 'zagolovok_forma'
         }
