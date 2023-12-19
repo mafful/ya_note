@@ -12,7 +12,7 @@ User = get_user_model()
 
 NOTE_TEXT = 'Текст заметки'
 NEW_NOTE_TEXT = 'Обновлённый комментарий'
-SLUG = 'note_for_author'
+SLUG = 'note_made_by_anfisa'
 
 HOME_URL = reverse('notes:home')
 LIST_URL = reverse('notes:list')
@@ -22,54 +22,56 @@ LOGIN_URL = reverse('users:login')
 LOGOUT_URL = reverse('users:logout')
 SIGNUP_URL = reverse('users:signup')
 
-DETAIL_AUTHOR_NOTE_URL = reverse('notes:detail', args=(SLUG,))
-EDIT_AUTHOR_NOTE_URL = reverse('notes:edit', args=(SLUG,))
-DELETE_AUTHOR_NOTE_URL = reverse('notes:delete', args=(SLUG,))
+DETAIL_NOTE_MADE_BY_ANFISA_URL = reverse('notes:detail', args=(SLUG,))
+EDIT_NOTE_MADE_BY_ANFISA_URL = reverse('notes:edit', args=(SLUG,))
+DELETE_NOTE_MADE_BY_ANFISA_URL = reverse('notes:delete', args=(SLUG,))
 
 
 class BaseClass(TestCase):
 
     @classmethod
     def setUpTestData(cls):
-        cls.author = User.objects.create(username='Автор')
-        cls.author_client = Client()
-        cls.author_client.force_login(cls.author)
+        cls.anfisa = User.objects.create(username='Анфиса')
+        cls.anfisa_client = Client()
+        cls.anfisa_client.force_login(cls.anfisa)
 
-        cls.another_author = User.objects.create(username='Другой Автор')
-        cls.another_author_client = Client()
-        cls.another_author_client.force_login(cls.another_author)
+        cls.fedor = User.objects.create(username='Федор')
+        cls.fedor_client = Client()
+        cls.fedor_client.force_login(cls.fedor)
 
-        cls.spam_author = User.objects.create(username='Спам Автор')
-        cls.spam_author_client = Client()
-        cls.spam_author_client.force_login(cls.spam_author)
+        cls.spam = User.objects.create(username='Спам')
+        cls.spam_client = Client()
+        cls.spam_client.force_login(cls.spam)
 
-        cls.note_author = Note.objects.create(
-            title='Note for Author',
-            text='Text for Author',
-            author=cls.author,
+        cls.note_made_by_anfisa = Note.objects.create(
+            title='Note by Anfisa',
+            text='Text writed by Anfisa',
+            author=cls.anfisa,
             slug=SLUG
         )
 
         today = timezone.now()
-        spam_notes = [
+        cls.spam_notes = [
             Note(
                 title=f'Сапм заметка {index}',
                 text='Спам текст.',
                 slug=f'Spam_zametka_{index}',
-                author=cls.spam_author,
+                author=cls.spam,
                 created_at=today + timedelta(days=index, minutes=index + 1))
             for index in range(0, settings.NOTES_COUNT_ON_HOME_PAGE)
         ]
-        Note.objects.bulk_create(spam_notes)
-        cls.note_another_author = Note.objects.create(
-            title='Note for Another Author',
+        Note.objects.bulk_create(cls.spam_notes)
+
+        cls.note_made_by_fedor = Note.objects.create(
+            title='Note by Fedor',
             text=NOTE_TEXT,
-            author=cls.another_author,
+            author=cls.fedor,
+            slug='note_by_fedor'
         )
 
         # Формируем данные для POST-запроса по обновлению комментария.
         cls.form_data = {
             'title': 'Заголовок_форма',
             'text': NOTE_TEXT,
-            'slug': 'zagolovok_forma'
+            'slug': 'zagolovokforma'
         }
