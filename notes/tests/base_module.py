@@ -1,10 +1,7 @@
-from datetime import timedelta
-
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.test import Client, TestCase
 from django.urls import reverse
-from django.utils import timezone
 
 from notes.models import Note
 
@@ -50,16 +47,13 @@ class BaseClass(TestCase):
             slug=SLUG
         )
 
-        today = timezone.now()
-        Note.objects.bulk_create([
+        Note.objects.bulk_create(
             Note(
                 title=f'Сапм заметка {index}',
                 text='Спам текст.',
                 slug=f'Spam_zametka_{index}',
-                author=cls.spam,
-                created_at=today + timedelta(days=index, minutes=index + 1))
+                author=cls.spam)
             for index in range(0, settings.NOTES_COUNT_ON_HOME_PAGE)
-        ]
         )
 
         cls.note_made_by_fedor = Note.objects.create(

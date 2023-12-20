@@ -52,8 +52,7 @@ class TestRoutes(BaseClass):
                 response = client_name.get(url)
                 self.assertEqual(
                     response.status_code,
-                    expected_answer,
-                    f'URL {url} expected {expected_answer}, but got {response}'
+                    expected_answer
                 )
 
     def test_redirect_for_anonymous_client(self):

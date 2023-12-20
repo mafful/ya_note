@@ -17,21 +17,20 @@ class TestContent(BaseClass):
         objects_count = len(response.context['object_list'])
         self.assertEqual(objects_count, settings.NOTES_COUNT_ON_HOME_PAGE)
 
-    def test_edit_page_contains_noteform(self):
-        """проверка наличия NoteForm на странице редактирования."""
-        url = EDIT_NOTE_MADE_BY_ANFISA_URL
+    def assert_page_contains_noteform(self, url):
+        """проверка наличия NoteForm на странице."""
         response = self.anfisa_client.get(url)
         self.assertIn('form', response.context)
         form = response.context['form']
         self.assertIsInstance(form, NoteForm)
 
-    def test_add_page_contains_noteform(self):
-        """проверка наличия NoteForm на странице добавления."""
-        url = ADD_URL
-        response = self.anfisa_client.get(url)
-        self.assertIn('form', response.context)
-        form = response.context['form']
-        self.assertIsInstance(form, NoteForm)
+    def test_add_edit_pages_contain_noteform(self):
+        """проверка наличия NoteForm на странице редактирования."""
+        for url in (EDIT_NOTE_MADE_BY_ANFISA_URL, ADD_URL):
+            response = self.anfisa_client.get(url)
+            self.assertIn('form', response.context)
+            form = response.context['form']
+            self.assertIsInstance(form, NoteForm)
 
     def test_notes_list_for_author(self):
         """
@@ -44,17 +43,18 @@ class TestContent(BaseClass):
         bunch_of_notes = response.context['object_list']
         self.assertEqual(len(bunch_of_notes), 1)
 
+        note_to_check = bunch_of_notes[0]
         self.assertEqual(
-            bunch_of_notes[0].title,
+            note_to_check.title,
             self.note_made_by_anfisa.title)
         self.assertEqual(
-            bunch_of_notes[0].text,
+            note_to_check.text,
             self.note_made_by_anfisa.text)
         self.assertEqual(
-            bunch_of_notes[0].author,
+            note_to_check.author,
             self.note_made_by_anfisa.author)
         self.assertEqual(
-            bunch_of_notes[0].slug,
+            note_to_check.slug,
             self.note_made_by_anfisa.slug)
 
     def test_notes_list_for_another_author(self):
