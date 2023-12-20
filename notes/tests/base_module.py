@@ -51,7 +51,7 @@ class BaseClass(TestCase):
         )
 
         today = timezone.now()
-        cls.spam_notes = [
+        Note.objects.bulk_create([
             Note(
                 title=f'Сапм заметка {index}',
                 text='Спам текст.',
@@ -60,7 +60,7 @@ class BaseClass(TestCase):
                 created_at=today + timedelta(days=index, minutes=index + 1))
             for index in range(0, settings.NOTES_COUNT_ON_HOME_PAGE)
         ]
-        Note.objects.bulk_create(cls.spam_notes)
+        )
 
         cls.note_made_by_fedor = Note.objects.create(
             title='Note by Fedor',

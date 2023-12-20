@@ -19,7 +19,7 @@ from .base_module import (
 
 class TestRoutes(BaseClass):
 
-    def test_13_pages_availability(self):
+    def test_pages_availability(self):
         """Доступность отдельных страниц"""
         cases = [
             [self.client, HOME_URL, HTTPStatus.OK],
@@ -56,7 +56,7 @@ class TestRoutes(BaseClass):
                     f'URL {url} expected {expected_answer}, but got {response}'
                 )
 
-    def test_14_redirect_for_anonymous_client(self):
+    def test_redirect_for_anonymous_client(self):
         """Проверка редиректов"""
         cases = [
             [ADD_URL,
