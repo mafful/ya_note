@@ -39,17 +39,12 @@ class TestLogic(BaseClass):
 
         # Find notes added during the test
         added_notes = final_set_of_notes - initial_set_of_notes
-        print("Added notes:")
-        for note in added_notes:
-            print(
-                f'- {note.pk},{note.title},{note.text},'
-                f'{note.slug},{note.author}'
-            )
-
-            self.assertEqual(note.title, self.form_data['title'])
-            self.assertEqual(note.text, self.form_data['text'])
-            self.assertEqual(note.slug, self.form_data['slug'])
-            self.assertEqual(note.author, self.fedor)
+        self.assertEqual(len(added_notes), 1)
+        note = list(added_notes)[0]
+        self.assertEqual(note.title, self.form_data['title'])
+        self.assertEqual(note.text, self.form_data['text'])
+        self.assertEqual(note.slug, self.form_data['slug'])
+        self.assertEqual(note.author, self.fedor)
 
     def test_note_without_slug(self):
         initial_set_of_notes = set(Note.objects.all())
@@ -64,20 +59,16 @@ class TestLogic(BaseClass):
 
         # Find notes added during the test
         added_notes = final_set_of_notes - initial_set_of_notes
-        print("Added notes:")
-        for note in added_notes:
-            print(
-                f'- {note.pk},{note.title},'
-                f'{note.text},{note.slug},{note.author}'
-            )
+        self.assertEqual(len(added_notes), 1)
+        note = list(added_notes)[0]
 
-            self.assertEqual(note.author, self.fedor)
-            self.assertEqual(note.title, form_data_wo_slug['title'])
-            self.assertEqual(note.text, form_data_wo_slug['text'])
+        self.assertEqual(note.author, self.fedor)
+        self.assertEqual(note.title, form_data_wo_slug['title'])
+        self.assertEqual(note.text, form_data_wo_slug['text'])
 
-            # Проверка, что slug создан корректно
-            expected_slug = slugify(form_data_wo_slug['title'])
-            self.assertEqual(note.slug, expected_slug)
+        # Проверка, что slug создан корректно
+        expected_slug = slugify(form_data_wo_slug['title'])
+        self.assertEqual(note.slug, expected_slug)
 
     def test_slug_for_uniqness(self):
         """Невозможно создать две заметки с одинаковым slug."""
@@ -121,8 +112,6 @@ class TestLogic(BaseClass):
             pk=self.note_made_by_anfisa.pk)
         self.assertEqual(note_trying_to_be_deleted.author,
                          self.note_made_by_anfisa.author)
-        self.assertEqual(note_trying_to_be_deleted.pk,
-                         self.note_made_by_anfisa.pk)
         self.assertEqual(note_trying_to_be_deleted.title,
                          self.note_made_by_anfisa.title)
         self.assertEqual(note_trying_to_be_deleted.text,
@@ -137,7 +126,7 @@ class TestLogic(BaseClass):
         self.assertRedirects(response, SUCCESS_URL)
 
         edited_note = Note.objects.get(pk=self.note_made_by_anfisa.pk)
-        self.assertEqual(edited_note.author, self.anfisa)
+        self.assertEqual(edited_note.author, self.note_made_by_anfisa.author)
         self.assertEqual(edited_note.title, self.form_data['title'])
         self.assertEqual(edited_note.text, self.form_data['text'])
         self.assertEqual(edited_note.slug, self.form_data['slug'])
