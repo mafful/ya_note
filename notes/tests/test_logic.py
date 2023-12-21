@@ -40,7 +40,7 @@ class TestLogic(BaseClass):
         # Find notes added during the test
         added_notes = final_set_of_notes - initial_set_of_notes
         self.assertEqual(len(added_notes), 1)
-        note = list(added_notes)[0]
+        note = added_notes.pop()
         self.assertEqual(note.title, self.form_data['title'])
         self.assertEqual(note.text, self.form_data['text'])
         self.assertEqual(note.slug, self.form_data['slug'])
@@ -60,8 +60,7 @@ class TestLogic(BaseClass):
         # Find notes added during the test
         added_notes = final_set_of_notes - initial_set_of_notes
         self.assertEqual(len(added_notes), 1)
-        note = list(added_notes)[0]
-
+        note = added_notes.pop()
         self.assertEqual(note.author, self.fedor)
         self.assertEqual(note.title, form_data_wo_slug['title'])
         self.assertEqual(note.text, form_data_wo_slug['text'])
