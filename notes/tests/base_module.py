@@ -69,35 +69,3 @@ class BaseClass(TestCase):
             'text': NOTE_TEXT,
             'slug': 'zagolovokforma'
         }
-
-    def create_notes_dict(self):
-        notes_dict = {
-            'note_made_by_anfisa': {
-                'title': 'Note by Anfisa',
-                'text': 'Text written by Anfisa',
-                'author': self.anfisa,
-                'slug': SLUG
-            },
-            'spam_notes': [
-                {
-                    'title': f'Spam заметка {index}',
-                    'text': 'Спам текст.',
-                    'slug': f'Spam_zametka_{index}',
-                    'author': self.spam
-                }
-                for index in range(0, settings.NOTES_COUNT_ON_HOME_PAGE)
-            ],
-            'note_made_by_fedor': {
-                'title': 'Note by Fedor',
-                'text': NOTE_TEXT,
-                'author': self.fedor,
-                'slug': 'note_by_fedor'
-            },
-            'additional_note': {
-                'title': self.form_data['title'],
-                'text': self.form_data['text'],
-                'author': self.fedor,
-                'slug': self.form_data['slug']
-            }
-        }
-        return notes_dict

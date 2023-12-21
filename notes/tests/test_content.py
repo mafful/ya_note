@@ -17,35 +17,23 @@ class TestContent(BaseClass):
         objects_count = len(response.context['object_list'])
         self.assertEqual(objects_count, settings.NOTES_COUNT_ON_HOME_PAGE)
 
-    def assert_page_contains_noteform(self, url):
-        """Проверка наличия NoteForm на странице."""
-        response = self.anfisa_client.get(url)
-        self.assertIn('form', response.context)
-        form = response.context['form']
-        self.assertIsInstance(form, NoteForm)
-
-    def test_edit_page_contains_noteform(self):
-        """Проверка наличия NoteForm на странице редактирования."""
-        url = EDIT_NOTE_MADE_BY_ANFISA_URL
-        response = self.anfisa_client.get(url)
-        self.assertIn('form', response.context)
-        form = response.context['form']
-        self.assertIsInstance(form, NoteForm)
-
-    def test_add_page_contains_noteform(self):
-        """Проверка наличия NoteForm на странице добавления."""
-        url = ADD_URL
-        response = self.anfisa_client.get(url)
-        self.assertIn('form', response.context)
-        form = response.context['form']
-        self.assertIsInstance(form, NoteForm)
+    def test_add_edit_pages_contains_noteform(self):
+        """Проверка наличия NoteForm."""
+        cases = [
+            [self.anfisa_client, EDIT_NOTE_MADE_BY_ANFISA_URL],
+            [self.anfisa_client, ADD_URL]
+        ]
+        for client_name, url in cases:
+            with self.subTest(client=client_name, url=url):
+                response = client_name.get(url)
+                self.assertIn('form', response.context)
+                form = response.context['form']
+                self.assertIsInstance(form, NoteForm)
 
     def test_notes_list_for_author(self):
         """
         Проверяет, что в список заметок пользователя
         попадают только его собственные заметки.
-        Каждая заметка передаётся на страницу в списке
-        object_list в словаре context.
         """
         response = self.anfisa_client.get(LIST_URL)
         bunch_of_notes = response.context['object_list']
